@@ -84,16 +84,33 @@ class TGP_LLMs_Txt {
 	 * Register Gutenberg blocks.
 	 */
 	public function register_blocks() {
-		// Register the LLM Buttons block.
-		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/llm-buttons' );
+		// Register individual button blocks.
+		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/copy-button' );
+		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/view-button' );
 
-		// Localize script for frontend.
+		// Localize script for frontend copy functionality.
 		wp_localize_script(
-			'tgp-llm-buttons-view-script',
+			'tgp-copy-button-view-script',
 			'tgpLlmBlock',
 			[
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'tgp_llms_nonce' ),
+			]
+		);
+
+		// Register block pattern.
+		register_block_pattern(
+			'tgp/llm-buttons',
+			[
+				'title'       => __( 'LLM Buttons', 'tgp-llms-txt' ),
+				'description' => __( 'Copy for LLM and View as Markdown buttons.', 'tgp-llms-txt' ),
+				'categories'  => [ 'buttons' ],
+				'keywords'    => [ 'llm', 'markdown', 'ai', 'copy', 'chatgpt' ],
+				'content'     => '<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:tgp/copy-button /-->
+
+<!-- wp:tgp/view-button /--></div>
+<!-- /wp:buttons -->',
 			]
 		);
 	}
