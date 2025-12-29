@@ -25,7 +25,7 @@ class TGP_UI_Buttons {
 	 * AJAX handler to get markdown content
 	 */
 	public function ajax_get_markdown() {
-		check_ajax_referer( 'tgp_llm_nonce', 'nonce' );
+		check_ajax_referer( 'tgp_llms_nonce', 'nonce' );
 
 		$post_id = isset( $_POST['post_id'] ) ? intval( $_POST['post_id'] ) : 0;
 
