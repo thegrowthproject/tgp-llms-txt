@@ -26,7 +26,7 @@ $copy_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" vie
 
 // Allowed SVG tags for wp_kses.
 $allowed_svg = [
-	'svg'  => [
+	'svg'    => [
 		'xmlns'           => true,
 		'width'           => true,
 		'height'          => true,
@@ -37,7 +37,7 @@ $allowed_svg = [
 		'stroke-linecap'  => true,
 		'stroke-linejoin' => true,
 	],
-	'rect' => [
+	'rect'   => [
 		'x'      => true,
 		'y'      => true,
 		'width'  => true,
@@ -55,25 +55,27 @@ $allowed_svg = [
 	],
 ];
 
-// Build wrapper classes.
+// Build wrapper classes (outer div gets block styles like is-style-outline).
 $wrapper_classes = [ 'wp-block-button' ];
 if ( $width ) {
 	$wrapper_classes[] = 'has-custom-width';
 	$wrapper_classes[] = 'wp-block-button__width-' . $width;
 }
 
-// Get block wrapper attributes (includes Block Supports styles automatically).
-$button_classes     = 'wp-block-button__link wp-element-button tgp-copy-btn';
+// Get block wrapper attributes for the outer div (includes is-style-* classes).
 $wrapper_attributes = get_block_wrapper_attributes(
 	[
-		'class' => $button_classes,
+		'class' => implode( ' ', $wrapper_classes ),
 	]
 );
+
+// Inner button classes.
+$button_classes = 'wp-block-button__link wp-element-button tgp-copy-btn';
 ?>
-<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>">
+<div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 	<button
 		type="button"
-		<?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		class="<?php echo esc_attr( $button_classes ); ?>"
 		data-post-id="<?php echo esc_attr( $post->ID ); ?>"
 		title="<?php esc_attr_e( 'Copy this content in markdown format for AI assistants', 'tgp-llms-txt' ); ?>"
 	>

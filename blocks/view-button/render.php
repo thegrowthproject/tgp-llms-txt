@@ -59,27 +59,29 @@ $allowed_svg = [
 	],
 ];
 
-// Build wrapper classes.
+// Build wrapper classes (outer div gets block styles like is-style-outline).
 $wrapper_classes = [ 'wp-block-button' ];
 if ( $width ) {
 	$wrapper_classes[] = 'has-custom-width';
 	$wrapper_classes[] = 'wp-block-button__width-' . $width;
 }
 
-// Get block wrapper attributes (includes Block Supports styles automatically).
-$button_classes     = 'wp-block-button__link wp-element-button tgp-view-btn';
+// Get block wrapper attributes for the outer div (includes is-style-* classes).
 $wrapper_attributes = get_block_wrapper_attributes(
 	[
-		'class' => $button_classes,
+		'class' => implode( ' ', $wrapper_classes ),
 	]
 );
+
+// Inner button classes.
+$button_classes = 'wp-block-button__link wp-element-button tgp-view-btn';
 ?>
-<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>">
+<div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 	<a
 		href="<?php echo esc_url( $md_url ); ?>"
 		target="_blank"
 		rel="noopener noreferrer"
-		<?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		class="<?php echo esc_attr( $button_classes ); ?>"
 		title="<?php esc_attr_e( 'View this content as plain markdown', 'tgp-llms-txt' ); ?>"
 	>
 		<?php if ( $show_icon ) : ?>
