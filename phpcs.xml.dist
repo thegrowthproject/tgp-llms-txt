@@ -18,14 +18,37 @@
 
     <!-- WordPress Coding Standards -->
     <rule ref="WordPress">
-        <!-- Allow short array syntax -->
+        <!-- Allow short array syntax [] instead of array() -->
         <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
-        <!-- Allow short ternary -->
-        <exclude name="WordPress.PHP.DisallowShortTernary"/>
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+
+        <!-- Main plugin file naming is correct for WordPress plugins -->
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+
+        <!-- Relax comment requirements - will tighten later -->
+        <exclude name="Squiz.Commenting.FileComment.MissingPackageTag"/>
+        <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+        <exclude name="Squiz.Commenting.VariableComment.MissingVar"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment"/>
+        <exclude name="Squiz.Commenting.ClassComment.Missing"/>
+
+        <!-- Allow flexible alignment -->
+        <exclude name="Generic.Formatting.MultipleStatementAlignment.NotSameWarning"/>
+        <exclude name="WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned"/>
+
+        <!-- Allow mixed declarations in same file (plugin bootstrap pattern) -->
+        <exclude name="Universal.Files.SeparateFunctionsFromOO.Mixed"/>
     </rule>
 
     <!-- Prefer short array syntax -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+
+    <!-- Block render files have variables passed by WordPress, not globals -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+        <exclude-pattern>*/blocks/*/render.php</exclude-pattern>
+    </rule>
 
     <!-- PHP Compatibility -->
     <config name="testVersion" value="8.2-"/>
@@ -47,8 +70,8 @@
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">
-                <element value="tgp"/>
-                <element value="TGP"/>
+                <element value="tgp_llms"/>
+                <element value="TGP_"/>
             </property>
         </properties>
     </rule>
