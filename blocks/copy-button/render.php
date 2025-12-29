@@ -45,8 +45,13 @@ $allowed_svg = [
 		'rx'     => true,
 		'ry'     => true,
 	],
-	'path' => [
+	'path'   => [
 		'd' => true,
+	],
+	'circle' => [
+		'cx' => true,
+		'cy' => true,
+		'r'  => true,
 	],
 ];
 

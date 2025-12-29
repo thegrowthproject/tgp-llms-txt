@@ -52,6 +52,11 @@ $allowed_svg = [
 		'x2' => true,
 		'y2' => true,
 	],
+	'circle'   => [
+		'cx' => true,
+		'cy' => true,
+		'r'  => true,
+	],
 ];
 
 // Build wrapper classes.
