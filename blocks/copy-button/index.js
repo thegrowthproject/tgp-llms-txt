@@ -51,14 +51,46 @@
 			const { attributes, setAttributes } = props;
 			const { label, showIcon, width } = attributes;
 
-			// Width class for wrapper
-			const wrapperClass = width
-				? 'wp-block-button has-custom-width wp-block-button__width-' + width
-				: 'wp-block-button';
+			// Get block props (includes Block Supports styles and classes)
+			const blockProps = useBlockProps();
 
-			const blockProps = useBlockProps( {
-				className: 'wp-block-button__link wp-element-button tgp-copy-btn'
+			// Parse blockProps to split classes between wrapper and inner button
+			const allClasses = blockProps.className ? blockProps.className.split( ' ' ) : [];
+
+			// Classes for outer wrapper (is-style-*, width classes)
+			const wrapperClasses = [ 'wp-block-button' ];
+
+			// Classes for inner button
+			const innerClasses = [ 'wp-block-button__link', 'wp-element-button', 'tgp-copy-btn' ];
+
+			// Distribute classes
+			allClasses.forEach( function( cls ) {
+				if ( cls.indexOf( 'is-style-' ) === 0 ) {
+					// Style classes go on outer wrapper
+					wrapperClasses.push( cls );
+				} else if ( cls.indexOf( 'has-' ) === 0 ) {
+					// Color/feature classes go on inner button
+					innerClasses.push( cls );
+				} else if ( cls.indexOf( 'wp-block-tgp-' ) === 0 ) {
+					// Block identifier - skip (we use wp-block-button structure)
+				}
 			} );
+
+			// Add width classes to wrapper
+			if ( width ) {
+				wrapperClasses.push( 'has-custom-width' );
+				wrapperClasses.push( 'wp-block-button__width-' + width );
+			}
+
+			// Build inner button props with styles
+			const innerProps = {
+				className: innerClasses.join( ' ' )
+			};
+
+			// Apply inline styles from blockProps to inner button
+			if ( blockProps.style ) {
+				innerProps.style = blockProps.style;
+			}
 
 			return el( Fragment, {},
 				// Inspector Controls (Sidebar)
@@ -93,8 +125,8 @@
 				),
 
 				// Block Preview
-				el( 'div', { className: wrapperClass },
-					el( 'button', blockProps,
+				el( 'div', { className: wrapperClasses.join( ' ' ) },
+					el( 'button', innerProps,
 						showIcon && el( 'span', { className: 'tgp-btn-icon' }, copyIcon ),
 						el( RichText, {
 							tagName: 'span',
