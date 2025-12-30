@@ -88,6 +88,9 @@ class TGP_LLMs_Txt {
 		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/copy-button' );
 		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/view-button' );
 
+		// Copy button styles from core/button to our custom button blocks.
+		$this->register_button_styles_from_theme();
+
 		// Localize script for frontend copy functionality.
 		wp_localize_script(
 			'tgp-copy-button-view-script',
@@ -113,6 +116,38 @@ class TGP_LLMs_Txt {
 <!-- /wp:buttons -->',
 			]
 		);
+	}
+
+	/**
+	 * Register button styles from theme for our custom button blocks.
+	 *
+	 * This copies any block styles registered for core/button (like Brand, Dark, Light, Tint)
+	 * and registers them for our tgp/copy-button and tgp/view-button blocks.
+	 */
+	private function register_button_styles_from_theme() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+
+		// Get all styles registered for core/button.
+		$button_styles = $registry->get_registered_styles_for_block( 'core/button' );
+
+		if ( empty( $button_styles ) ) {
+			return;
+		}
+
+		// Our custom button blocks.
+		$our_blocks = [ 'tgp/copy-button', 'tgp/view-button' ];
+
+		// Register each style for our blocks.
+		foreach ( $button_styles as $style_name => $style_props ) {
+			// Skip the default fill/outline styles - we define those in block.json.
+			if ( in_array( $style_name, [ 'fill', 'outline' ], true ) ) {
+				continue;
+			}
+
+			foreach ( $our_blocks as $block_name ) {
+				register_block_style( $block_name, $style_props );
+			}
+		}
 	}
 
 	/**
