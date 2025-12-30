@@ -1,67 +1,65 @@
-( function() {
-	'use strict';
+/**
+ * WordPress Interactivity API store for Copy Button block.
+ *
+ * @package TGP_LLMs_Txt
+ */
 
-	document.addEventListener( 'DOMContentLoaded', function() {
-		const copyButtons = document.querySelectorAll( '.tgp-copy-btn' );
+import { store, getContext } from '@wordpress/interactivity';
 
-		copyButtons.forEach( function( button ) {
-			button.addEventListener( 'click', function( e ) {
-				e.preventDefault();
+const { state, actions } = store( 'tgp/copy-button', {
+	state: {
+		get buttonText() {
+			const ctx = getContext();
+			switch ( ctx.copyState ) {
+				case 'loading':
+					return ctx.labelCopying;
+				case 'success':
+					return ctx.labelSuccess;
+				case 'error':
+					return ctx.labelError;
+				default:
+					return ctx.label;
+			}
+		},
+		get isLoading() {
+			const ctx = getContext();
+			return ctx.copyState === 'loading';
+		},
+		get isDisabled() {
+			const ctx = getContext();
+			return ctx.copyState === 'loading';
+		}
+	},
+	actions: {
+		*copyMarkdown() {
+			const ctx = getContext();
 
-				const postId = this.getAttribute( 'data-post-id' );
-				const btnText = this.querySelector( '.tgp-btn-text' );
-				const originalText = btnText ? btnText.textContent : 'Copy for LLM';
+			// Prevent double-clicks.
+			if ( ctx.copyState === 'loading' ) {
+				return;
+			}
 
-				// Show loading state.
-				if ( btnText ) {
-					btnText.textContent = 'Copying...';
+			ctx.copyState = 'loading';
+
+			try {
+				const response = yield fetch( ctx.mdUrl );
+
+				if ( ! response.ok ) {
+					throw new Error( `HTTP ${ response.status }` );
 				}
-				button.disabled = true;
 
-				// Fetch markdown via AJAX.
-				const formData = new FormData();
-				formData.append( 'action', 'tgp_get_markdown' );
-				formData.append( 'post_id', postId );
-				formData.append( 'nonce', window.tgpLlmBlock ? window.tgpLlmBlock.nonce : '' );
+				const markdown = yield response.text();
+				yield navigator.clipboard.writeText( markdown );
 
-				fetch( window.tgpLlmBlock ? window.tgpLlmBlock.ajaxUrl : '/wp-admin/admin-ajax.php', {
-					method: 'POST',
-					body: formData,
-					credentials: 'same-origin'
-				} )
-				.then( function( response ) {
-					return response.json();
-				} )
-				.then( function( data ) {
-					if ( data.success && data.data.markdown ) {
-						return navigator.clipboard.writeText( data.data.markdown ).then( function() {
-							if ( btnText ) {
-								btnText.textContent = 'Copied!';
-							}
-							setTimeout( function() {
-								if ( btnText ) {
-									btnText.textContent = originalText;
-								}
-								button.disabled = false;
-							}, 2000 );
-						} );
-					} else {
-						throw new Error( data.data || 'Failed to get markdown' );
-					}
-				} )
-				.catch( function( error ) {
-					console.error( 'Copy failed:', error );
-					if ( btnText ) {
-						btnText.textContent = 'Failed';
-					}
-					setTimeout( function() {
-						if ( btnText ) {
-							btnText.textContent = originalText;
-						}
-						button.disabled = false;
-					}, 2000 );
-				} );
-			} );
-		} );
-	} );
-} )();
+				ctx.copyState = 'success';
+			} catch ( error ) {
+				console.error( 'Copy failed:', error );
+				ctx.copyState = 'error';
+			}
+
+			// Reset after 2 seconds.
+			yield new Promise( ( resolve ) => setTimeout( resolve, 2000 ) );
+			ctx.copyState = 'idle';
+		}
+	}
+} );

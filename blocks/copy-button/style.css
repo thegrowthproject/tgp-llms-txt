@@ -28,3 +28,22 @@
 .tgp-copy-btn .tgp-btn-text {
 	white-space: nowrap;
 }
+
+/* Loading state */
+.tgp-copy-btn.is-loading {
+	opacity: 0.7;
+	cursor: wait;
+}
+
+.tgp-copy-btn.is-loading .tgp-btn-icon svg {
+	animation: tgp-spin 1s linear infinite;
+}
+
+@keyframes tgp-spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
