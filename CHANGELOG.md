@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-12-31
+
+### Changed
+- **BREAKING:** Requires WordPress 6.5+ (was 5.0+)
+- Migrated copy button to WordPress Interactivity API for reactive state management
+- Copy button now fetches directly from `.md` endpoint (faster, cached) instead of admin-ajax.php
+- Replaced custom color/style attributes with WordPress Block Supports API
+- Buttons now inherit theme styles automatically (Brand, Dark, Light, Tint variants)
+- Split `llm-buttons` block into separate `copy-button` and `view-button` blocks
+
+### Removed
+- `includes/class-ui-buttons.php` (AJAX handler no longer needed)
+- `blocks/llm-buttons/editor.css` (styles now from Block Supports)
+- Custom `backgroundColor`, `textColor`, `borderRadius` attributes (replaced by Block Supports)
+
+### Fixed
+- Button styles now match theme design system
+- Improved performance by eliminating admin-ajax.php overhead
+
 ## [1.0.0] - 2025-12-30
 
 ### Added

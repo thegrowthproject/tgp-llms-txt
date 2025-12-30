@@ -73,16 +73,19 @@ tgp-llms-txt/
 │   ├── class-endpoint-handler.php    # Routes requests to .md and llms.txt
 │   ├── class-llms-txt-generator.php  # Generates the /llms.txt index
 │   ├── class-markdown-converter.php  # Converts Gutenberg HTML to markdown
-│   ├── class-frontmatter.php         # Generates YAML frontmatter for .md files
-│   └── class-ui-buttons.php          # Adds copy-to-clipboard functionality
+│   └── class-frontmatter.php         # Generates YAML frontmatter for .md files
 └── blocks/
-    └── llm-buttons/                  # Gutenberg block for copy buttons
+    ├── copy-button/                  # "Copy for LLM" button block
+    │   ├── block.json
+    │   ├── index.js
+    │   ├── view.js                   # Interactivity API store
+    │   ├── render.php
+    │   └── style.css
+    └── view-button/                  # "View as Markdown" link block
         ├── block.json
         ├── index.js
-        ├── view.js
         ├── render.php
-        ├── style.css
-        └── editor.css
+        └── style.css
 ```
 
 ### Core Classes
@@ -103,12 +106,15 @@ The heavy lifter. Converts WordPress Gutenberg block content to clean markdown:
 **`TGP_Frontmatter`**
 Generates YAML frontmatter for individual `.md` endpoints. Includes title, URL, date, author, and excerpt metadata.
 
-**`TGP_UI_Buttons`**
-Provides JavaScript functionality for copying page content as markdown. Powers the Gutenberg block.
+### Gutenberg Blocks
 
-### Gutenberg Block
+**Copy for LLM** (`tgp/copy-button`)
+Copies the current page content as markdown to clipboard. Uses WordPress Interactivity API for reactive state management. Fetches directly from the `.md` endpoint.
 
-The `llm-buttons` block adds a "Copy as Markdown" button to any page. When clicked, it fetches the `.md` version of the current page and copies it to the clipboard.
+**View as Markdown** (`tgp/view-button`)
+Opens the `.md` version of the current page in a new tab.
+
+Both blocks inherit theme button styles automatically via WordPress Block Supports API.
 
 ## How It Works
 
@@ -127,7 +133,7 @@ Responses include a `Cache-Control: public, max-age=3600` header (1 hour). For p
 
 ## Requirements
 
-- WordPress 5.0+ (Gutenberg required)
+- WordPress 6.5+ (Interactivity API required)
 - PHP 8.2+
 
 ## Built By
