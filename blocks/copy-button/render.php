@@ -3,6 +3,7 @@
  * Server-side rendering for Copy Button block.
  *
  * Renders a button that copies the current page content as markdown.
+ * Uses WordPress Interactivity API for reactive state management.
  *
  * @package TGP_LLMs_Txt
  *
@@ -20,6 +21,20 @@ if ( ! $post ) {
 $label     = $attributes['label'] ?? __( 'Copy for LLM', 'tgp-llms-txt' );
 $show_icon = $attributes['showIcon'] ?? true;
 $width     = $attributes['width'] ?? null;
+
+// Build markdown URL for fetching.
+$permalink = get_permalink( $post );
+$md_url    = rtrim( $permalink, '/' ) . '.md';
+
+// Interactivity API context.
+$context = [
+	'mdUrl'        => $md_url,
+	'copyState'    => 'idle',
+	'label'        => $label,
+	'labelCopying' => __( 'Copying...', 'tgp-llms-txt' ),
+	'labelSuccess' => __( 'Copied!', 'tgp-llms-txt' ),
+	'labelError'   => __( 'Failed', 'tgp-llms-txt' ),
+];
 
 // Copy icon SVG.
 $copy_icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
@@ -105,16 +120,22 @@ foreach ( $wrapper_classes as $class ) {
 // Build style attribute for inner button.
 $style_attr = $wrapper_styles ? ' style="' . esc_attr( $wrapper_styles ) . '"' : '';
 ?>
-<div class="<?php echo esc_attr( implode( ' ', $outer_classes ) ); ?>">
+<div
+	class="<?php echo esc_attr( implode( ' ', $outer_classes ) ); ?>"
+	data-wp-interactive="tgp/copy-button"
+	<?php echo wp_interactivity_data_wp_context( $context ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+>
 	<button
 		type="button"
 		class="<?php echo esc_attr( implode( ' ', $inner_classes ) ); ?>"<?php echo $style_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-		data-post-id="<?php echo esc_attr( $post->ID ); ?>"
 		title="<?php esc_attr_e( 'Copy this content in markdown format for AI assistants', 'tgp-llms-txt' ); ?>"
+		data-wp-on--click="actions.copyMarkdown"
+		data-wp-bind--disabled="state.isDisabled"
+		data-wp-class--is-loading="state.isLoading"
 	>
 		<?php if ( $show_icon ) : ?>
 			<span class="tgp-btn-icon"><?php echo wp_kses( $copy_icon, $allowed_svg ); ?></span>
 		<?php endif; ?>
-		<span class="tgp-btn-text"><?php echo esc_html( $label ); ?></span>
+		<span class="tgp-btn-text" data-wp-text="state.buttonText"><?php echo esc_html( $label ); ?></span>
 	</button>
 </div>

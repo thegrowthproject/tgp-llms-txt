@@ -3,7 +3,8 @@
  * Plugin Name: TGP LLMs.txt
  * Plugin URI: https://thegrowthproject.com.au
  * Description: Provides markdown endpoints for AI/LLM consumption. Adds .md URLs, /llms.txt index, and "Copy for LLM" buttons.
- * Version: 1.2.0
+ * Version: 1.3.0
+ * Requires at least: 6.5
  * Author: The Growth Project
  * Author URI: https://thegrowthproject.com.au
  * License: GPL v2 or later
@@ -16,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TGP_LLMS_VERSION', '1.2.0' );
+define( 'TGP_LLMS_VERSION', '1.3.0' );
 define( 'TGP_LLMS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TGP_LLMS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -60,7 +61,6 @@ class TGP_LLMs_Txt {
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-frontmatter.php';
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-endpoint-handler.php';
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-llms-txt-generator.php';
-		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-ui-buttons.php';
 	}
 
 	/**
@@ -70,7 +70,6 @@ class TGP_LLMs_Txt {
 		// Initialize components.
 		new TGP_Endpoint_Handler();
 		new TGP_LLMs_Txt_Generator();
-		new TGP_UI_Buttons();
 
 		// Register block.
 		add_action( 'init', [ $this, 'register_blocks' ] );
@@ -90,16 +89,6 @@ class TGP_LLMs_Txt {
 
 		// Copy button styles from core/button to our custom button blocks.
 		$this->register_button_styles_from_theme();
-
-		// Localize script for frontend copy functionality.
-		wp_localize_script(
-			'tgp-copy-button-view-script',
-			'tgpLlmBlock',
-			[
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'tgp_llms_nonce' ),
-			]
-		);
 
 		// Register block pattern.
 		register_block_pattern(
