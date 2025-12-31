@@ -1031,10 +1031,744 @@ curl -s "http://yoursite.com/page/" | grep "wp-block-tgp"
 
 ---
 
+## Block Style Registration Methods
+
+WordPress provides 6 different methods to register block style variations. Choose based on your use case.
+
+### Method Comparison
+
+| Method | Location | Best For |
+|--------|----------|----------|
+| JSON files in `/styles/blocks/` | Theme | Theme-defined styles, no PHP |
+| `register_block_style()` with `style_data` | PHP | Styles using theme.json values |
+| `register_block_style()` with `inline_style` | PHP | Simple CSS strings |
+| `register_block_style()` with `style_handle` | PHP | External stylesheet reference |
+| `wp.blocks.registerBlockStyle()` | JavaScript | Editor-only registration |
+| `wp.blocks.unregisterBlockStyle()` | JavaScript | Removing existing styles |
+
+---
+
+### Method 1: JSON Files (Theme)
+
+Create JSON files in your theme's `/styles/blocks/{block-name}/` directory.
+
+```
+your-theme/
+└── styles/
+    └── blocks/
+        └── button/
+            └── button-brand.json
+```
+
+**button-brand.json:**
+
+```json
+{
+    "$schema": "https://schemas.wp.org/trunk/theme.json",
+    "version": 3,
+    "title": "Brand",
+    "slug": "button-brand",
+    "blockTypes": [ "core/button" ],
+    "styles": {
+        "color": {
+            "background": "var:preset|color|primary",
+            "text": "var:preset|color|base"
+        },
+        "border": {
+            "radius": "var:preset|spacing|20"
+        }
+    }
+}
+```
+
+**Pros:** No PHP required, theme.json syntax, automatically enqueued.
+**Cons:** Theme-only (not for plugins), limited to theme.json properties.
+
+---
+
+### Method 2: PHP with style_data
+
+Use theme.json-style syntax in PHP.
+
+```php
+register_block_style(
+    'core/button',
+    array(
+        'name'       => 'button-brand',
+        'label'      => __( 'Brand', 'tgp-llms-txt' ),
+        'style_data' => array(
+            'color' => array(
+                'background' => 'var:preset|color|primary',
+                'text'       => 'var:preset|color|base',
+            ),
+            'border' => array(
+                'radius' => 'var:preset|spacing|20',
+            ),
+        ),
+    )
+);
+```
+
+**Pros:** Uses theme.json syntax, works in plugins.
+**Cons:** More verbose than CSS.
+
+---
+
+### Method 3: PHP with inline_style
+
+Provide CSS directly as a string.
+
+```php
+register_block_style(
+    'core/button',
+    array(
+        'name'         => 'button-brand',
+        'label'        => __( 'Brand', 'tgp-llms-txt' ),
+        'inline_style' => '
+            .wp-block-button.is-style-button-brand .wp-block-button__link {
+                background-color: var(--wp--preset--color--primary);
+                color: var(--wp--preset--color--base);
+                border-radius: var(--wp--preset--spacing--20);
+            }
+        ',
+    )
+);
+```
+
+**Pros:** Full CSS control, works in plugins.
+**Cons:** CSS as PHP string, harder to maintain.
+
+---
+
+### Method 4: PHP with style_handle
+
+Reference an external stylesheet.
+
+```php
+// First, register the stylesheet.
+wp_register_style(
+    'tgp-button-brand',
+    plugin_dir_url( __FILE__ ) . 'css/button-brand.css',
+    array(),
+    '1.0.0'
+);
+
+// Then register the style with the handle.
+register_block_style(
+    'core/button',
+    array(
+        'name'         => 'button-brand',
+        'label'        => __( 'Brand', 'tgp-llms-txt' ),
+        'style_handle' => 'tgp-button-brand',
+    )
+);
+```
+
+**css/button-brand.css:**
+
+```css
+.wp-block-button.is-style-button-brand .wp-block-button__link {
+    background-color: var(--wp--preset--color--primary);
+    color: var(--wp--preset--color--base);
+    border-radius: var(--wp--preset--spacing--20);
+}
+```
+
+**Pros:** Standard CSS files, easy to maintain, cacheable.
+**Cons:** More files to manage.
+
+---
+
+### Method 5: JavaScript Registration
+
+Register in JavaScript for editor-only scenarios.
+
+```javascript
+import { registerBlockStyle } from '@wordpress/blocks';
+
+registerBlockStyle( 'core/button', {
+    name: 'button-brand',
+    label: 'Brand',
+} );
+```
+
+**With CSS (editor script):**
+
+```javascript
+import { registerBlockStyle } from '@wordpress/blocks';
+import './button-brand.scss';
+
+registerBlockStyle( 'core/button', {
+    name: 'button-brand',
+    label: 'Brand',
+} );
+```
+
+**Pros:** Can be bundled with editor scripts.
+**Cons:** Requires separate frontend CSS enqueue.
+
+---
+
+### Method 6: Unregistering Styles
+
+Remove built-in or theme-registered styles.
+
+```javascript
+import { unregisterBlockStyle } from '@wordpress/blocks';
+import domReady from '@wordpress/dom-ready';
+
+domReady( () => {
+    // Remove the outline style from buttons.
+    unregisterBlockStyle( 'core/button', 'outline' );
+
+    // Remove multiple styles.
+    unregisterBlockStyle( 'core/quote', [ 'default', 'plain' ] );
+} );
+```
+
+**Important:** Must run after block registration, hence `domReady`.
+
+---
+
+### When to Use Each Method
+
+| Scenario | Recommended Method |
+|----------|-------------------|
+| Theme-defined styles | Method 1 (JSON files) |
+| Plugin-defined styles | Method 3 (inline_style) or Method 4 (style_handle) |
+| Complex CSS with multiple selectors | Method 4 (style_handle) |
+| Theme.json property values only | Method 2 (style_data) |
+| Editor-only customization | Method 5 (JavaScript) |
+| Removing unwanted styles | Method 6 (unregisterBlockStyle) |
+
+---
+
+## Extending Core Blocks
+
+### Adding Attributes to Core Blocks
+
+Use the `blocks.registerBlockType` filter to extend core blocks.
+
+```javascript
+import { addFilter } from '@wordpress/hooks';
+
+/**
+ * Add custom attribute to core/image block.
+ */
+addFilter(
+    'blocks.registerBlockType',
+    'tgp/add-image-attribute',
+    ( settings, name ) => {
+        if ( name !== 'core/image' ) {
+            return settings;
+        }
+
+        return {
+            ...settings,
+            attributes: {
+                ...settings.attributes,
+                customCaption: {
+                    type: 'string',
+                    default: '',
+                },
+            },
+        };
+    }
+);
+```
+
+### Modifying Block Edit Component
+
+Use `editor.BlockEdit` to wrap or modify the edit component.
+
+```javascript
+import { addFilter } from '@wordpress/hooks';
+import { createHigherOrderComponent } from '@wordpress/compose';
+import { InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, TextControl } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+
+/**
+ * Add custom inspector controls to core/image.
+ */
+const withCustomControls = createHigherOrderComponent( ( BlockEdit ) => {
+    return ( props ) => {
+        if ( props.name !== 'core/image' ) {
+            return <BlockEdit { ...props } />;
+        }
+
+        const { attributes, setAttributes } = props;
+        const { customCaption } = attributes;
+
+        return (
+            <>
+                <BlockEdit { ...props } />
+                <InspectorControls>
+                    <PanelBody title={ __( 'Custom Settings', 'tgp-llms-txt' ) }>
+                        <TextControl
+                            label={ __( 'Custom Caption', 'tgp-llms-txt' ) }
+                            value={ customCaption || '' }
+                            onChange={ ( value ) =>
+                                setAttributes( { customCaption: value } )
+                            }
+                        />
+                    </PanelBody>
+                </InspectorControls>
+            </>
+        );
+    };
+}, 'withCustomControls' );
+
+addFilter(
+    'editor.BlockEdit',
+    'tgp/with-custom-controls',
+    withCustomControls
+);
+```
+
+### Adding Blocks as Allowed Children
+
+Add your block as an allowed child of a parent block.
+
+```javascript
+import { addFilter } from '@wordpress/hooks';
+
+/**
+ * Allow tgp/menu-item inside core/navigation.
+ */
+addFilter(
+    'blocks.registerBlockType',
+    'tgp/allow-in-navigation',
+    ( settings, name ) => {
+        if ( name !== 'core/navigation' ) {
+            return settings;
+        }
+
+        return {
+            ...settings,
+            allowedBlocks: [
+                ...( settings.allowedBlocks || [] ),
+                'tgp/menu-item',
+            ],
+        };
+    }
+);
+```
+
+### Modifying Block Save Output
+
+Use `blocks.getSaveElement` to modify the saved HTML.
+
+```javascript
+import { addFilter } from '@wordpress/hooks';
+import { cloneElement } from '@wordpress/element';
+
+/**
+ * Add custom data attribute to saved core/button output.
+ */
+addFilter(
+    'blocks.getSaveElement',
+    'tgp/add-button-data',
+    ( element, blockType, attributes ) => {
+        if ( blockType.name !== 'core/button' || ! element ) {
+            return element;
+        }
+
+        // Add data attribute to the element.
+        return cloneElement( element, {
+            'data-tgp-tracking': 'true',
+        } );
+    }
+);
+```
+
+---
+
+## Block Context
+
+Block context allows parent blocks to share data with nested child blocks.
+
+### Consuming Context (usesContext)
+
+A child block declares which context values it needs.
+
+**block.json (child block):**
+
+```json
+{
+    "name": "tgp/child-block",
+    "usesContext": [ "postId", "postType", "tgp/parentId" ]
+}
+```
+
+**edit.js (child block):**
+
+```javascript
+export default function Edit( { attributes, setAttributes, context } ) {
+    // Access context from parent blocks.
+    const { postId, postType, 'tgp/parentId': parentId } = context;
+
+    return (
+        <div>
+            <p>Post ID: { postId }</p>
+            <p>Post Type: { postType }</p>
+            <p>Parent ID: { parentId }</p>
+        </div>
+    );
+}
+```
+
+### Providing Context (providesContext)
+
+A parent block declares which attributes to expose as context.
+
+**block.json (parent block):**
+
+```json
+{
+    "name": "tgp/parent-block",
+    "attributes": {
+        "blockId": {
+            "type": "string"
+        },
+        "theme": {
+            "type": "string",
+            "default": "light"
+        }
+    },
+    "providesContext": {
+        "tgp/parentId": "blockId",
+        "tgp/theme": "theme"
+    }
+}
+```
+
+Child blocks can then consume `tgp/parentId` and `tgp/theme` via `usesContext`.
+
+### Common Context Use Cases
+
+| Context Key | Source | Use Case |
+|-------------|--------|----------|
+| `postId` | WordPress core | Dynamic blocks needing post data |
+| `postType` | WordPress core | Conditional rendering by post type |
+| `queryId` | Query block | Blocks inside query loops |
+| `tgp/parentId` | Custom parent | Linking child to parent |
+| `tgp/settings` | Custom parent | Sharing configuration down |
+
+### Accessing Context in render.php
+
+```php
+<?php
+/**
+ * Block render template.
+ *
+ * @var array    $attributes Block attributes.
+ * @var string   $content    Block inner content.
+ * @var WP_Block $block      Block instance.
+ */
+
+// Access context via block instance.
+$post_id   = $block->context['postId'] ?? get_the_ID();
+$parent_id = $block->context['tgp/parentId'] ?? null;
+
+if ( $parent_id ) {
+    // Do something with parent context.
+}
+?>
+```
+
+---
+
+## Testing Setup
+
+### Jest Configuration
+
+WordPress scripts includes Jest for unit testing.
+
+**package.json:**
+
+```json
+{
+    "scripts": {
+        "test": "wp-scripts test-unit-js",
+        "test:watch": "wp-scripts test-unit-js --watch",
+        "test:coverage": "wp-scripts test-unit-js --coverage"
+    }
+}
+```
+
+### Component Testing
+
+**src/blocks/your-block/test/edit.test.js:**
+
+```javascript
+/**
+ * Edit component tests.
+ */
+
+import { render, screen, fireEvent } from '@testing-library/react';
+import Edit from '../edit';
+
+// Mock WordPress dependencies.
+jest.mock( '@wordpress/block-editor', () => ( {
+    useBlockProps: () => ( {} ),
+    InspectorControls: ( { children } ) => <>{ children }</>,
+    RichText: ( { value, onChange, placeholder } ) => (
+        <input
+            value={ value || '' }
+            onChange={ ( e ) => onChange( e.target.value ) }
+            placeholder={ placeholder }
+        />
+    ),
+} ) );
+
+describe( 'Edit component', () => {
+    const defaultProps = {
+        attributes: {
+            label: 'Test Button',
+            showIcon: true,
+        },
+        setAttributes: jest.fn(),
+    };
+
+    beforeEach( () => {
+        jest.clearAllMocks();
+    } );
+
+    it( 'renders button label', () => {
+        render( <Edit { ...defaultProps } /> );
+
+        expect( screen.getByDisplayValue( 'Test Button' ) ).toBeInTheDocument();
+    } );
+
+    it( 'calls setAttributes on label change', () => {
+        render( <Edit { ...defaultProps } /> );
+
+        const input = screen.getByDisplayValue( 'Test Button' );
+        fireEvent.change( input, { target: { value: 'New Label' } } );
+
+        expect( defaultProps.setAttributes ).toHaveBeenCalledWith( {
+            label: 'New Label',
+        } );
+    } );
+
+    it( 'shows icon when showIcon is true', () => {
+        const { container } = render( <Edit { ...defaultProps } /> );
+
+        expect(
+            container.querySelector( '.wp-block-tgp-your-block__icon' )
+        ).toBeInTheDocument();
+    } );
+
+    it( 'hides icon when showIcon is false', () => {
+        const props = {
+            ...defaultProps,
+            attributes: {
+                ...defaultProps.attributes,
+                showIcon: false,
+            },
+        };
+
+        const { container } = render( <Edit { ...props } /> );
+
+        expect(
+            container.querySelector( '.wp-block-tgp-your-block__icon' )
+        ).not.toBeInTheDocument();
+    } );
+} );
+```
+
+### Testing Store Actions (Interactivity API)
+
+**src/blocks/your-block/test/store.test.js:**
+
+```javascript
+/**
+ * Store action tests.
+ */
+
+import { store, getContext } from '@wordpress/interactivity';
+
+// Mock getContext.
+jest.mock( '@wordpress/interactivity', () => {
+    let mockContext = {};
+
+    return {
+        store: jest.fn( ( namespace, config ) => config ),
+        getContext: jest.fn( () => mockContext ),
+        setMockContext: ( ctx ) => {
+            mockContext = ctx;
+        },
+    };
+} );
+
+import { setMockContext } from '@wordpress/interactivity';
+
+describe( 'Store actions', () => {
+    let storeConfig;
+
+    beforeEach( () => {
+        // Re-import to get fresh store.
+        jest.resetModules();
+        storeConfig = require( '../view' ).default;
+    } );
+
+    describe( 'handleClick', () => {
+        it( 'sets isLoading to true during operation', async () => {
+            const context = {
+                isLoading: false,
+                apiUrl: 'https://example.com/api',
+            };
+            setMockContext( context );
+
+            global.fetch = jest.fn( () =>
+                Promise.resolve( {
+                    json: () => Promise.resolve( { success: true } ),
+                } )
+            );
+
+            // Run the generator action.
+            const generator = storeConfig.actions.handleClick();
+            generator.next(); // Start.
+
+            expect( context.isLoading ).toBe( true );
+        } );
+    } );
+} );
+```
+
+### E2E Testing with Playwright
+
+**package.json:**
+
+```json
+{
+    "scripts": {
+        "test:e2e": "wp-scripts test-playwright",
+        "test:e2e:debug": "wp-scripts test-playwright --debug"
+    }
+}
+```
+
+**e2e/your-block.spec.js:**
+
+```javascript
+/**
+ * E2E tests for your-block.
+ */
+
+const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
+
+test.describe( 'Your Block', () => {
+    test.beforeEach( async ( { admin, page } ) => {
+        await admin.createNewPost();
+    } );
+
+    test( 'can be inserted', async ( { editor, page } ) => {
+        await editor.insertBlock( { name: 'tgp/your-block' } );
+
+        const block = await editor.getBlocks();
+        expect( block ).toHaveLength( 1 );
+        expect( block[ 0 ].name ).toBe( 'tgp/your-block' );
+    } );
+
+    test( 'displays default label', async ( { editor, page } ) => {
+        await editor.insertBlock( { name: 'tgp/your-block' } );
+
+        await expect(
+            page.locator( '.wp-block-tgp-your-block__label' )
+        ).toHaveText( 'Button Text' );
+    } );
+
+    test( 'can change label via RichText', async ( { editor, page } ) => {
+        await editor.insertBlock( { name: 'tgp/your-block' } );
+
+        await page.locator( '.wp-block-tgp-your-block__label' ).fill( 'New Label' );
+
+        const block = await editor.getBlocks();
+        expect( block[ 0 ].attributes.label ).toBe( 'New Label' );
+    } );
+
+    test( 'saves and renders on frontend', async ( { editor, page } ) => {
+        await editor.insertBlock( {
+            name: 'tgp/your-block',
+            attributes: { label: 'Frontend Test' },
+        } );
+
+        const postId = await editor.publishPost();
+        await page.goto( `/?p=${ postId }` );
+
+        await expect(
+            page.locator( '.wp-block-tgp-your-block__label' )
+        ).toHaveText( 'Frontend Test' );
+    } );
+} );
+```
+
+### CI Configuration (GitHub Actions)
+
+**.github/workflows/test.yml:**
+
+```yaml
+name: Tests
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start WordPress environment
+        run: npx wp-env start
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+```
+
+---
+
 ## References
 
 - [Block Editor Handbook](https://developer.wordpress.org/block-editor/)
 - [Interactivity API](https://developer.wordpress.org/block-editor/reference-guides/interactivity-api/)
 - [Block Supports](https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/)
 - [Block Styles](https://developer.wordpress.org/block-editor/reference-guides/block-api/block-styles/)
+- [Block Context](https://developer.wordpress.org/block-editor/reference-guides/block-api/block-context/)
+- [Extending Blocks](https://developer.wordpress.org/block-editor/reference-guides/filters/block-filters/)
 - [@wordpress/scripts](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/)
+- [Testing Overview](https://developer.wordpress.org/block-editor/contributors/testing-overview/)
