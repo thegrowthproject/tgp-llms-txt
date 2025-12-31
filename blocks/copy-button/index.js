@@ -77,7 +77,7 @@
 			} );
 
 			// Build inner button classes
-			const innerClasses = [ 'wp-block-button__link', 'wp-element-button', 'tgp-copy-btn' ];
+			const innerClasses = [ 'wp-block-button__link', 'wp-element-button', 'wp-block-tgp-copy-button' ];
 
 			// Only add color classes if NOT using a style variation
 			if ( ! hasStyleVariation ) {
@@ -226,10 +226,10 @@
 				// Block Preview - spread blockProps for proper selection and preview
 				el( 'div', blockProps,
 					el( 'button', innerProps,
-						showIcon && el( 'span', { className: 'tgp-btn-icon' }, copyIcon ),
+						showIcon && el( 'span', { className: 'wp-block-tgp-copy-button__icon' }, copyIcon ),
 						el( RichText, {
 							tagName: 'span',
-							className: 'tgp-btn-text',
+							className: 'wp-block-tgp-copy-button__text',
 							value: label,
 							onChange: function( value ) {
 								setAttributes( { label: value } );

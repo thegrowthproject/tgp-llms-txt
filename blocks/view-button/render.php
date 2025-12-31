@@ -113,7 +113,7 @@ if ( $width ) {
 }
 
 // Build inner button classes.
-$inner_classes = [ 'wp-block-button__link', 'wp-element-button', 'tgp-view-btn' ];
+$inner_classes = [ 'wp-block-button__link', 'wp-element-button', 'wp-block-tgp-view-button' ];
 
 // Only add color classes if NOT using a style variation (or using default fill).
 if ( ! $has_style_variation ) {
@@ -228,9 +228,9 @@ $style_attr = ! empty( $inline_styles ) ? ' style="' . esc_attr( implode( '; ', 
 		title="<?php /* translators: Tooltip text for view markdown button */ esc_attr_e( 'View this content as plain markdown', 'tgp-llms-txt' ); ?>"
 	>
 		<?php if ( $show_icon ) : ?>
-			<span class="tgp-btn-icon" aria-hidden="true"><?php echo wp_kses( $view_icon, $allowed_svg ); ?></span>
+			<span class="wp-block-tgp-view-button__icon" aria-hidden="true"><?php echo wp_kses( $view_icon, $allowed_svg ); ?></span>
 		<?php endif; ?>
-		<span class="tgp-btn-text"><?php echo esc_html( $label ); ?></span>
+		<span class="wp-block-tgp-view-button__text"><?php echo esc_html( $label ); ?></span>
 		<span class="screen-reader-text"><?php /* translators: Screen reader text describing the view markdown button action */ esc_html_e( 'View page content as plain markdown in new tab', 'tgp-llms-txt' ); ?></span>
 	</a>
 </div>
