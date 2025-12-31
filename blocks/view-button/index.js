@@ -80,7 +80,7 @@
 			} );
 
 			// Build inner button classes
-			const innerClasses = [ 'wp-block-button__link', 'wp-element-button', 'tgp-view-btn' ];
+			const innerClasses = [ 'wp-block-button__link', 'wp-element-button', 'wp-block-tgp-view-button' ];
 
 			// Only add color classes if NOT using a style variation
 			if ( ! hasStyleVariation ) {
@@ -229,10 +229,10 @@
 				// Block Preview - spread blockProps for proper selection and preview
 				el( 'div', blockProps,
 					el( 'a', innerProps,
-						showIcon && el( 'span', { className: 'tgp-btn-icon' }, viewIcon ),
+						showIcon && el( 'span', { className: 'wp-block-tgp-view-button__icon' }, viewIcon ),
 						el( RichText, {
 							tagName: 'span',
-							className: 'tgp-btn-text',
+							className: 'wp-block-tgp-view-button__text',
 							value: label,
 							onChange: function( value ) {
 								setAttributes( { label: value } );

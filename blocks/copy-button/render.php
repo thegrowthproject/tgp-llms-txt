@@ -127,7 +127,7 @@ if ( $width ) {
 }
 
 // Build inner button classes.
-$inner_classes = [ 'wp-block-button__link', 'wp-element-button', 'tgp-copy-btn' ];
+$inner_classes = [ 'wp-block-button__link', 'wp-element-button', 'wp-block-tgp-copy-button' ];
 
 // Only add color classes if NOT using a style variation (or using default fill).
 if ( ! $has_style_variation ) {
@@ -247,9 +247,9 @@ $style_attr = ! empty( $inline_styles ) ? ' style="' . esc_attr( implode( '; ', 
 		data-wp-class--is-loading="state.isLoading"
 	>
 		<?php if ( $show_icon ) : ?>
-			<span class="tgp-btn-icon" aria-hidden="true"><?php echo wp_kses( $copy_icon, $allowed_svg ); ?></span>
+			<span class="wp-block-tgp-copy-button__icon" aria-hidden="true"><?php echo wp_kses( $copy_icon, $allowed_svg ); ?></span>
 		<?php endif; ?>
-		<span class="tgp-btn-text" role="status" aria-live="polite" data-wp-text="state.buttonText"><?php echo esc_html( $label ); ?></span>
+		<span class="wp-block-tgp-copy-button__text" role="status" aria-live="polite" data-wp-text="state.buttonText"><?php echo esc_html( $label ); ?></span>
 		<span class="screen-reader-text"><?php /* translators: Screen reader text describing the copy button action */ esc_html_e( 'Copy page content as markdown for AI assistants', 'tgp-llms-txt' ); ?></span>
 	</button>
 </div>
