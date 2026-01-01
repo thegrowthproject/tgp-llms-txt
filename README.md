@@ -1,7 +1,9 @@
 # WP LLMs Plugin
 
-[![PHP Tests](https://github.com/thegrowthproject/wp-llms-txt/actions/workflows/lint.yml/badge.svg)](https://github.com/thegrowthproject/wp-llms-txt/actions/workflows/lint.yml)
-[![E2E Tests](https://github.com/thegrowthproject/wp-llms-txt/actions/workflows/e2e.yml/badge.svg)](https://github.com/thegrowthproject/wp-llms-txt/actions/workflows/e2e.yml)
+[![CI](https://github.com/thegrowthproject/wp-llms-txt/actions/workflows/lint.yml/badge.svg)](https://github.com/thegrowthproject/wp-llms-txt/actions/workflows/lint.yml)
+![WordPress 6.5+](https://img.shields.io/badge/WordPress-6.5%2B-blue?logo=wordpress)
+![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-purple?logo=php)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0)
 
 A WordPress plugin that makes your site readable by AI systems.
 
