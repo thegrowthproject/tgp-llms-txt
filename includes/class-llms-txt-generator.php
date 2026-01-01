@@ -39,9 +39,11 @@ class TGP_LLMs_Txt_Generator {
 
 		$output .= "> {$site_description}\n\n";
 
-		// Site description
-		$output .= 'The Growth Project provides senior technology delivery support for mid-market businesses. ';
-		$output .= "We cover AI implementation, systems integration, DevOps, and operator perspectives.\n\n";
+		// Site description (filterable).
+		$description = apply_filters( 'tgp_llms_txt_description', '' );
+		if ( ! empty( $description ) ) {
+			$output .= $description . "\n\n";
+		}
 
 		// Key pages
 		$output .= "## Pages\n\n";
