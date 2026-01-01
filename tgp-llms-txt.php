@@ -60,6 +60,7 @@ class TGP_LLMs_Txt {
 		// Shared helpers (used by blocks).
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-svg-sanitizer.php';
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-button-block-renderer.php';
+		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-pill-block-renderer.php';
 
 		// Core functionality.
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-markdown-converter.php';
