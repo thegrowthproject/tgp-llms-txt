@@ -21,3 +21,7 @@ composer.lock
 .phpunit.cache/
 node_modules/
 coverage/
+
+# Playwright
+test-results/
+playwright-report/
