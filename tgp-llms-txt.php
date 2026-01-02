@@ -67,6 +67,9 @@ class TGP_LLMs_Txt {
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-frontmatter.php';
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-endpoint-handler.php';
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-llms-txt-generator.php';
+
+		// Self-hosted plugin updates.
+		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-plugin-updater.php';
 	}
 
 	/**
@@ -76,6 +79,7 @@ class TGP_LLMs_Txt {
 		// Initialize components.
 		new TGP_Endpoint_Handler();
 		new TGP_LLMs_Txt_Generator();
+		new TGP_Plugin_Updater();
 
 		// Register block.
 		add_action( 'init', [ $this, 'register_blocks' ] );
