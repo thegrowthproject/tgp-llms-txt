@@ -44,6 +44,17 @@ jobs:
           echo "Waiting for WordPress to be ready..."
           timeout 60 bash -c 'until curl -s http://localhost:8888 > /dev/null; do sleep 2; done'
 
+      - name: Activate plugin and flush rewrite rules
+        run: |
+          npm run wp-env run cli wp plugin activate tgp-llms-txt
+          npm run wp-env run cli wp rewrite flush
+
+      - name: Verify plugin is active
+        run: |
+          npm run wp-env run cli wp plugin list
+          echo "Testing /llms.txt endpoint..."
+          curl -v http://localhost:8888/llms.txt || true
+
       - name: Run E2E tests
         run: npm run test:e2e
 
