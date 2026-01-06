@@ -3,25 +3,36 @@
  * YAML Frontmatter Generator
  *
  * Generates YAML frontmatter for markdown output
+ *
+ * @package TGP_LLMs_Txt
  */
+
+declare(strict_types=1);
+
+namespace TGP\LLMsTxt;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class TGP_Frontmatter {
+/**
+ * Frontmatter class.
+ */
+class Frontmatter {
 
 	/**
-	 * The post object
+	 * The post object.
+	 *
+	 * @var \WP_Post
 	 */
-	private $post;
+	private \WP_Post $post;
 
 	/**
 	 * Constructor
 	 *
-	 * @param WP_Post $post The post object.
+	 * @param \WP_Post $post The post object.
 	 */
-	public function __construct( $post ) {
+	public function __construct( \WP_Post $post ) {
 		$this->post = $post;
 	}
 
@@ -30,7 +41,7 @@ class TGP_Frontmatter {
 	 *
 	 * @return string YAML frontmatter block
 	 */
-	public function generate() {
+	public function generate(): string {
 		$data = $this->get_frontmatter_data();
 
 		$yaml = "---\n";
@@ -54,7 +65,7 @@ class TGP_Frontmatter {
 	 *
 	 * @return array Frontmatter key-value pairs
 	 */
-	private function get_frontmatter_data() {
+	private function get_frontmatter_data(): array {
 		$data = [
 			'title'       => get_the_title( $this->post ),
 			'description' => $this->get_description(),
@@ -83,9 +94,11 @@ class TGP_Frontmatter {
 	}
 
 	/**
-	 * Get post description/excerpt
+	 * Get post description/excerpt.
+	 *
+	 * @return string The post excerpt or generated description.
 	 */
-	private function get_description() {
+	private function get_description(): string {
 		$excerpt = get_the_excerpt( $this->post );
 		if ( empty( $excerpt ) ) {
 			// Generate from content.
@@ -97,22 +110,26 @@ class TGP_Frontmatter {
 	}
 
 	/**
-	 * Get author name
+	 * Get author name.
+	 *
+	 * @return string The author display name.
 	 */
-	private function get_author() {
+	private function get_author(): string {
 		$author_id = $this->post->post_author;
 		return get_the_author_meta( 'display_name', $author_id );
 	}
 
 	/**
-	 * Get primary category
+	 * Get primary category.
+	 *
+	 * @return string|null The primary category name or null.
 	 */
-	private function get_primary_category() {
+	private function get_primary_category(): ?string {
 		$categories = get_the_category( $this->post->ID );
 		if ( ! empty( $categories ) ) {
 			// Try to get primary category (if Yoast or similar is installed)
 			if ( class_exists( 'WPSEO_Primary_Term' ) ) {
-				$primary_term = new WPSEO_Primary_Term( 'category', $this->post->ID );
+				$primary_term = new \WPSEO_Primary_Term( 'category', $this->post->ID );
 				$primary_term_id = $primary_term->get_primary_term();
 				if ( $primary_term_id ) {
 					$term = get_term( $primary_term_id );
@@ -128,9 +145,11 @@ class TGP_Frontmatter {
 	}
 
 	/**
-	 * Get post tags
+	 * Get post tags.
+	 *
+	 * @return array<string> Array of tag names.
 	 */
-	private function get_tags() {
+	private function get_tags(): array {
 		$tags = get_the_tags( $this->post->ID );
 		if ( $tags && ! is_wp_error( $tags ) ) {
 			return array_map(
@@ -144,9 +163,11 @@ class TGP_Frontmatter {
 	}
 
 	/**
-	 * Estimate reading time in minutes
+	 * Estimate reading time in minutes.
+	 *
+	 * @return string The reading time estimate (e.g., "5 min read").
 	 */
-	private function estimate_reading_time() {
+	private function estimate_reading_time(): string {
 		$content = wp_strip_all_tags( $this->post->post_content );
 		$word_count = str_word_count( $content );
 		$minutes = ceil( $word_count / 200 ); // Assume 200 words per minute
@@ -154,9 +175,12 @@ class TGP_Frontmatter {
 	}
 
 	/**
-	 * Escape YAML value if needed
+	 * Escape YAML value if needed.
+	 *
+	 * @param string $value The value to escape.
+	 * @return string The escaped value.
 	 */
-	private function escape_yaml_value( $value ) {
+	private function escape_yaml_value( string $value ): string {
 		// If value contains special characters, wrap in quotes
 		if ( preg_match( '/[:\[\]{}#&*!|>\'"%@`]/', $value ) ||
 			preg_match( '/^[\s]|[\s]$/', $value ) ) {

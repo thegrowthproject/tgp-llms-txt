@@ -8,6 +8,10 @@
  * @package TGP_LLMs_Txt
  */
 
+declare(strict_types=1);
+
+namespace TGP\LLMsTxt\Blocks;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -17,7 +21,72 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Consolidates duplicate rendering logic used by copy-button and view-button blocks.
  */
-class TGP_Button_Block_Renderer {
+class ButtonRenderer {
+
+	/**
+	 * Validate a CSS color value.
+	 *
+	 * Accepts hex colors, rgb/rgba, hsl/hsla, CSS color names, and CSS variables.
+	 *
+	 * @param mixed $color The color value to validate.
+	 * @return bool True if the color value is valid, false otherwise.
+	 */
+	public static function is_valid_css_color( mixed $color ): bool {
+		if ( ! is_string( $color ) || '' === $color ) {
+			return false;
+		}
+
+		// Whitelist of patterns for safe CSS color values.
+		$patterns = [
+			// Hex colors: #rgb, #rrggbb, #rrggbbaa.
+			'/^#[0-9a-fA-F]{3,8}$/',
+			// RGB/RGBA: rgb(r, g, b) or rgba(r, g, b, a) with various formats.
+			'/^rgba?\(\s*[\d.%\s,\/]+\s*\)$/',
+			// HSL/HSLA: hsl(h, s%, l%) or hsla(h, s%, l%, a).
+			'/^hsla?\(\s*[\d.%\s,\/deg]+\s*\)$/',
+			// CSS color names (common ones, lowercase).
+			'/^(transparent|currentcolor|inherit|initial|unset|' .
+				'black|white|red|green|blue|yellow|orange|purple|pink|gray|grey|' .
+				'navy|teal|aqua|maroon|olive|lime|fuchsia|silver)$/i',
+			// CSS custom properties / variables.
+			'/^var\(\s*--[a-zA-Z0-9_-]+(?:\s*,\s*[^)]+)?\s*\)$/',
+		];
+
+		foreach ( $patterns as $pattern ) {
+			if ( preg_match( $pattern, $color ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Validate a CSS gradient value.
+	 *
+	 * @param mixed $gradient The gradient value to validate.
+	 * @return bool True if the gradient value is valid, false otherwise.
+	 */
+	public static function is_valid_css_gradient( mixed $gradient ): bool {
+		if ( ! is_string( $gradient ) || '' === $gradient ) {
+			return false;
+		}
+
+		// Allow linear-gradient, radial-gradient, conic-gradient and their repeating variants.
+		// Also allow CSS variables.
+		$patterns = [
+			'/^(repeating-)?(linear|radial|conic)-gradient\([^;{}]+\)$/',
+			'/^var\(\s*--[a-zA-Z0-9_-]+(?:\s*,\s*[^)]+)?\s*\)$/',
+		];
+
+		foreach ( $patterns as $pattern ) {
+			if ( preg_match( $pattern, $gradient ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Extract all style-related attributes from block attributes.
@@ -25,7 +94,7 @@ class TGP_Button_Block_Renderer {
 	 * @param array $attributes Block attributes.
 	 * @return array Extracted style attributes.
 	 */
-	public static function get_style_attributes( $attributes ) {
+	public static function get_style_attributes( array $attributes ): array {
 		return [
 			// Color slugs (preset colors).
 			'bg_color_slug'   => $attributes['backgroundColor'] ?? null,
@@ -66,7 +135,7 @@ class TGP_Button_Block_Renderer {
 	 * @param string $wrapper_attrs_string The wrapper attributes string from get_block_wrapper_attributes().
 	 * @return array Array with 'variation' (string) and 'has_variation' (bool) keys.
 	 */
-	public static function get_style_variation( $wrapper_attrs_string ) {
+	public static function get_style_variation( string $wrapper_attrs_string ): array {
 		$style_variation     = 'fill'; // Default.
 		$has_style_variation = false;
 
@@ -88,7 +157,7 @@ class TGP_Button_Block_Renderer {
 	 * @param string $style_variation The style variation name.
 	 * @return array Array of CSS class names.
 	 */
-	public static function build_outer_classes( $style_attrs, $style_variation ) {
+	public static function build_outer_classes( array $style_attrs, string $style_variation ): array {
 		$classes = [ 'wp-block-button', 'is-style-' . $style_variation ];
 
 		// Add width classes.
@@ -108,7 +177,7 @@ class TGP_Button_Block_Renderer {
 	 * @param bool   $has_style_variation Whether a non-default style variation is active.
 	 * @return array Array of CSS class names.
 	 */
-	public static function build_inner_classes( $style_attrs, $base_class, $has_style_variation ) {
+	public static function build_inner_classes( array $style_attrs, string $base_class, bool $has_style_variation ): array {
 		$classes = [ 'wp-block-button__link', 'wp-element-button', $base_class ];
 
 		// Only add color classes if NOT using a style variation (or using default fill).
@@ -144,18 +213,19 @@ class TGP_Button_Block_Renderer {
 	 * @param bool  $has_style_variation Whether a non-default style variation is active.
 	 * @return string The style attribute value (without 'style=' wrapper), or empty string.
 	 */
-	public static function build_inline_styles( $style_attrs, $has_style_variation ) {
+	public static function build_inline_styles( array $style_attrs, bool $has_style_variation ): string {
 		$styles = [];
 
 		// Color styles only if NOT using a style variation.
+		// Validate color values before use to prevent CSS injection.
 		if ( ! $has_style_variation ) {
-			if ( $style_attrs['custom_bg_color'] ) {
+			if ( $style_attrs['custom_bg_color'] && self::is_valid_css_color( $style_attrs['custom_bg_color'] ) ) {
 				$styles[] = 'background-color: ' . $style_attrs['custom_bg_color'];
 			}
-			if ( $style_attrs['custom_text_color'] ) {
+			if ( $style_attrs['custom_text_color'] && self::is_valid_css_color( $style_attrs['custom_text_color'] ) ) {
 				$styles[] = 'color: ' . $style_attrs['custom_text_color'];
 			}
-			if ( $style_attrs['custom_gradient'] ) {
+			if ( $style_attrs['custom_gradient'] && self::is_valid_css_gradient( $style_attrs['custom_gradient'] ) ) {
 				$styles[] = 'background: ' . $style_attrs['custom_gradient'];
 			}
 		}
@@ -241,7 +311,7 @@ class TGP_Button_Block_Renderer {
 	 * @param bool  $has_style_variation Whether a non-default style variation is active.
 	 * @return string The complete style attribute (e.g., ' style="..."'), or empty string.
 	 */
-	public static function get_style_attribute( $style_attrs, $has_style_variation ) {
+	public static function get_style_attribute( array $style_attrs, bool $has_style_variation ): string {
 		$inline_styles = self::build_inline_styles( $style_attrs, $has_style_variation );
 
 		if ( empty( $inline_styles ) ) {

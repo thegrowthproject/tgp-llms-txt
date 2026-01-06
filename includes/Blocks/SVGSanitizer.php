@@ -7,6 +7,10 @@
  * @package TGP_LLMs_Txt
  */
 
+declare(strict_types=1);
+
+namespace TGP\LLMsTxt\Blocks;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -16,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Consolidates SVG sanitization logic used by multiple blocks.
  */
-class TGP_SVG_Sanitizer {
+class SVGSanitizer {
 
 	/**
 	 * Get comprehensive allowed SVG tags for wp_kses.
@@ -34,7 +38,7 @@ class TGP_SVG_Sanitizer {
 	 *
 	 * @return array Allowed tags array for wp_kses.
 	 */
-	public static function get_allowed_tags() {
+	public static function get_allowed_tags(): array {
 		return [
 			'svg'      => [
 				'xmlns'           => true,
