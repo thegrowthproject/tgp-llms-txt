@@ -75,7 +75,7 @@ class TGP_Plugin_Updater {
 	/**
 	 * Initialize hooks.
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		// Check for updates when WordPress checks the plugin transient.
 		add_filter( 'site_transient_update_plugins', [ $this, 'check_for_update' ] );
 
@@ -92,7 +92,7 @@ class TGP_Plugin_Updater {
 	 * @param object $transient The update_plugins transient object.
 	 * @return object Modified transient.
 	 */
-	public function check_for_update( $transient ) {
+	public function check_for_update( mixed $transient ): mixed {
 		if ( empty( $transient->checked ) ) {
 			return $transient;
 		}
@@ -137,7 +137,7 @@ class TGP_Plugin_Updater {
 	 * @param object             $args   Plugin API arguments.
 	 * @return false|object Plugin information or false.
 	 */
-	public function plugin_info( $result, $action, $args ) {
+	public function plugin_info( mixed $result, string $action, object $args ): mixed {
 		// Only handle plugin_information requests for our plugin.
 		if ( 'plugin_information' !== $action || ( $args->slug ?? '' ) !== $this->slug ) {
 			return $result;
@@ -173,11 +173,22 @@ class TGP_Plugin_Updater {
 	}
 
 	/**
+	 * Allowed hosts for plugin downloads.
+	 *
+	 * @var array
+	 */
+	private $allowed_download_hosts = [
+		'github.com',
+		'raw.githubusercontent.com',
+		'objects.githubusercontent.com',
+	];
+
+	/**
 	 * Get remote update data from manifest.
 	 *
 	 * @return object|false Remote data object or false on failure.
 	 */
-	private function get_remote_data() {
+	private function get_remote_data(): object|false {
 		// Check cache first.
 		$cached = get_transient( $this->cache_key );
 
@@ -203,7 +214,8 @@ class TGP_Plugin_Updater {
 		$body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $body );
 
-		if ( ! $data || empty( $data->version ) ) {
+		// Validate manifest structure.
+		if ( ! $this->validate_manifest( $data ) ) {
 			return false;
 		}
 
@@ -214,12 +226,83 @@ class TGP_Plugin_Updater {
 	}
 
 	/**
+	 * Validate the manifest data structure.
+	 *
+	 * Ensures required fields are present, have correct types, and
+	 * download URLs are from trusted domains.
+	 *
+	 * @param mixed $data The decoded manifest data.
+	 * @return bool True if valid, false otherwise.
+	 */
+	private function validate_manifest( mixed $data ): bool {
+		// Must be an object.
+		if ( ! is_object( $data ) ) {
+			return false;
+		}
+
+		// Required fields must exist.
+		$required_fields = [ 'version', 'download_url' ];
+		foreach ( $required_fields as $field ) {
+			if ( ! isset( $data->$field ) ) {
+				return false;
+			}
+		}
+
+		// Version must be a valid semver-like string.
+		if ( ! is_string( $data->version ) || ! preg_match( '/^\d+\.\d+(\.\d+)?(-[\w.]+)?(\+[\w.]+)?$/', $data->version ) ) {
+			return false;
+		}
+
+		// Download URL must be a valid URL.
+		if ( ! is_string( $data->download_url ) || ! filter_var( $data->download_url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		// Download URL must use HTTPS.
+		if ( 'https' !== wp_parse_url( $data->download_url, PHP_URL_SCHEME ) ) {
+			return false;
+		}
+
+		// Download URL must be from an allowed host.
+		$download_host = wp_parse_url( $data->download_url, PHP_URL_HOST );
+		if ( ! in_array( $download_host, $this->allowed_download_hosts, true ) ) {
+			/**
+			 * Filter the allowed download hosts for plugin updates.
+			 *
+			 * @param array  $allowed_hosts Array of allowed hostnames.
+			 * @param string $download_host The host from the download URL.
+			 */
+			$allowed_hosts = apply_filters( 'tgp_llms_txt_allowed_update_hosts', $this->allowed_download_hosts, $download_host );
+
+			if ( ! in_array( $download_host, $allowed_hosts, true ) ) {
+				return false;
+			}
+		}
+
+		// Optional fields validation (if present, must be correct type).
+		if ( isset( $data->requires ) && ! is_string( $data->requires ) ) {
+			return false;
+		}
+		if ( isset( $data->requires_php ) && ! is_string( $data->requires_php ) ) {
+			return false;
+		}
+		if ( isset( $data->tested ) && ! is_string( $data->tested ) ) {
+			return false;
+		}
+		if ( isset( $data->homepage ) && ! filter_var( $data->homepage, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Clear cached update data after plugin update.
 	 *
 	 * @param WP_Upgrader $upgrader   The upgrader instance.
 	 * @param array       $hook_extra Extra hook arguments.
 	 */
-	public function clear_cache( $upgrader, $hook_extra ) {
+	public function clear_cache( object $upgrader, array $hook_extra ): void {
 		if ( 'plugin' === ( $hook_extra['type'] ?? '' ) && 'update' === ( $hook_extra['action'] ?? '' ) ) {
 			$plugins = $hook_extra['plugins'] ?? [];
 

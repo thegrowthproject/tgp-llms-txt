@@ -45,7 +45,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param array $attributes Block attributes.
 	 * @return array Extracted style attributes.
 	 */
-	public static function get_style_attributes( $attributes ) {
+	public static function get_style_attributes( array $attributes ): array {
 		return [
 			// Color presets.
 			'bg_color_preset'   => $attributes['backgroundColor'] ?? null,
@@ -78,17 +78,29 @@ class TGP_Pill_Block_Renderer {
 	/**
 	 * Resolve color values from presets or custom values.
 	 *
+	 * Validates custom color values before use to prevent CSS injection.
+	 * Preset colors are converted to safe CSS variable references.
+	 *
 	 * @param array $style_attrs Style attributes from get_style_attributes().
 	 * @return array Resolved colors with 'background' and 'text' keys.
 	 */
-	public static function resolve_colors( $style_attrs ) {
-		$background = $style_attrs['bg_color_custom'];
-		if ( ! $background && $style_attrs['bg_color_preset'] ) {
+	public static function resolve_colors( array $style_attrs ): array {
+		$background = null;
+		$text       = null;
+
+		// Handle custom background color with validation.
+		if ( $style_attrs['bg_color_custom'] && TGP_Button_Block_Renderer::is_valid_css_color( $style_attrs['bg_color_custom'] ) ) {
+			$background = $style_attrs['bg_color_custom'];
+		} elseif ( $style_attrs['bg_color_preset'] ) {
+			// Preset colors use safe CSS variable references.
 			$background = 'var(--wp--preset--color--' . $style_attrs['bg_color_preset'] . ')';
 		}
 
-		$text = $style_attrs['text_color_custom'];
-		if ( ! $text && $style_attrs['text_color_preset'] ) {
+		// Handle custom text color with validation.
+		if ( $style_attrs['text_color_custom'] && TGP_Button_Block_Renderer::is_valid_css_color( $style_attrs['text_color_custom'] ) ) {
+			$text = $style_attrs['text_color_custom'];
+		} elseif ( $style_attrs['text_color_preset'] ) {
+			// Preset colors use safe CSS variable references.
 			$text = 'var(--wp--preset--color--' . $style_attrs['text_color_preset'] . ')';
 		}
 
@@ -104,7 +116,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param string $wrapper_attrs_string Wrapper attributes from get_block_wrapper_attributes().
 	 * @return string The style variation name.
 	 */
-	public static function get_style_variation( $wrapper_attrs_string ) {
+	public static function get_style_variation( string $wrapper_attrs_string ): string {
 		if ( preg_match( '/is-style-([a-z0-9-]+)/', $wrapper_attrs_string, $match ) ) {
 			return $match[1];
 		}
@@ -119,7 +131,7 @@ class TGP_Pill_Block_Renderer {
 	 *
 	 * @return array Array of CSS class names.
 	 */
-	public static function build_pill_wrapper_classes() {
+	public static function build_pill_wrapper_classes(): array {
 		return [ 'wp-block-button', 'is-style-' . self::INACTIVE_STYLE ];
 	}
 
@@ -129,7 +141,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param string $base_class The block-specific base class.
 	 * @return array Array of CSS class names.
 	 */
-	public static function build_button_classes( $base_class ) {
+	public static function build_button_classes( string $base_class ): array {
 		return [ 'wp-block-button__link', 'wp-element-button', $base_class ];
 	}
 
@@ -141,7 +153,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param array $style_attrs Style attributes from get_style_attributes().
 	 * @return string The style attribute value, or empty string.
 	 */
-	public static function build_button_styles( $style_attrs ) {
+	public static function build_button_styles( array $style_attrs ): string {
 		$styles = [];
 
 		// Typography.
@@ -211,7 +223,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param array $colors      Resolved colors from resolve_colors().
 	 * @return array Array with 'styles' (CSS properties) and 'classes' (marker classes).
 	 */
-	public static function build_active_state_styles( $style_attrs, $colors ) {
+	public static function build_active_state_styles( array $style_attrs, array $colors ): array {
 		$styles  = [];
 		$classes = [];
 
@@ -228,6 +240,7 @@ class TGP_Pill_Block_Renderer {
 		}
 
 		// Border (width, style, color - not radius).
+		// Validate border color to prevent CSS injection.
 		$border = $style_attrs['border'];
 		if ( $border ) {
 			if ( isset( $border['width'] ) ) {
@@ -241,7 +254,7 @@ class TGP_Pill_Block_Renderer {
 			if ( isset( $border['style'] ) ) {
 				$styles[] = '--tgp-active-border-style: ' . $border['style'];
 			}
-			if ( isset( $border['color'] ) ) {
+			if ( isset( $border['color'] ) && TGP_Button_Block_Renderer::is_valid_css_color( $border['color'] ) ) {
 				$styles[] = '--tgp-active-border-color: ' . $border['color'];
 			}
 		}
@@ -264,7 +277,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param array $style_attrs Style attributes from get_style_attributes().
 	 * @return string The style attribute (e.g., ' style="..."'), or empty string.
 	 */
-	public static function get_button_style_attribute( $style_attrs ) {
+	public static function get_button_style_attribute( array $style_attrs ): string {
 		$styles = self::build_button_styles( $style_attrs );
 		if ( empty( $styles ) ) {
 			return '';
@@ -278,7 +291,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param array $active_styles Active state styles from build_active_state_styles().
 	 * @return string The style attribute (e.g., ' style="..."'), or empty string.
 	 */
-	public static function get_wrapper_style_attribute( $active_styles ) {
+	public static function get_wrapper_style_attribute( array $active_styles ): string {
 		if ( empty( $active_styles['styles'] ) ) {
 			return '';
 		}
@@ -292,7 +305,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param array  $marker_classes       Marker classes to add.
 	 * @return string Modified wrapper attributes string.
 	 */
-	public static function inject_marker_classes( $wrapper_attrs_string, $marker_classes ) {
+	public static function inject_marker_classes( string $wrapper_attrs_string, array $marker_classes ): string {
 		if ( empty( $marker_classes ) ) {
 			return $wrapper_attrs_string;
 		}
@@ -311,7 +324,7 @@ class TGP_Pill_Block_Renderer {
 	 * @param string $active_style The active style variation.
 	 * @return array Array with 'active' and 'inactive' class names.
 	 */
-	public static function get_style_classes( $active_style ) {
+	public static function get_style_classes( string $active_style ): array {
 		return [
 			'active'   => 'is-style-' . $active_style,
 			'inactive' => 'is-style-' . self::INACTIVE_STYLE,
