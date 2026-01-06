@@ -49,8 +49,8 @@ jobs:
         run: |
           npm run wp-env run cli wp plugin activate wp-llms-txt
           npm run wp-env run cli wp rewrite structure '/%postname%/'
-          # Create .htaccess manually since wp rewrite flush doesn't create it in Docker
-          npm run wp-env run tests-wordpress -- bash -c 'cat > /var/www/html/.htaccess << EOF
+          # Create .htaccess in wordpress container (port 8888) - wp rewrite flush doesn't create it in Docker
+          npm run wp-env run wordpress -- bash -c 'cat > /var/www/html/.htaccess << "HTACCESS"
           # BEGIN WordPress
           <IfModule mod_rewrite.c>
           RewriteEngine On
@@ -61,15 +61,13 @@ jobs:
           RewriteRule . /index.php [L]
           </IfModule>
           # END WordPress
-          EOF'
+          HTACCESS'
 
       - name: Verify plugin is active
         run: |
           npm run wp-env run cli wp plugin list
-          echo "Checking .htaccess content..."
-          npm run wp-env run cli -- cat /var/www/html/.htaccess || true
-          echo "Checking Apache modules..."
-          npm run wp-env run tests-wordpress -- apache2ctl -M 2>&1 | grep rewrite || true
+          echo "Checking .htaccess content in wordpress container..."
+          npm run wp-env run wordpress -- cat /var/www/html/.htaccess || echo "File not found"
           echo "Testing /llms.txt endpoint..."
           curl -v http://localhost:8888/llms.txt || true
 
