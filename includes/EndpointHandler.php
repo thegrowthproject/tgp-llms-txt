@@ -244,6 +244,15 @@ class EndpointHandler {
 	 */
 	private function send_404(): void {
 		global $wp_query;
+
+		Logger::warning(
+			'Markdown endpoint not found',
+			[
+				'slug'       => $this->md_slug,
+				'request_ip' => $this->get_client_ip(),
+			]
+		);
+
 		$wp_query->set_404();
 		status_header( 404 );
 		nocache_headers();
@@ -371,6 +380,16 @@ class EndpointHandler {
 	 */
 	private function send_rate_limit_exceeded( int $limit, int $reset_time ): void {
 		$retry_after = max( 1, $reset_time - time() );
+		$client_ip   = $this->get_client_ip();
+
+		Logger::warning(
+			'Rate limit exceeded',
+			[
+				'ip'          => $client_ip,
+				'limit'       => $limit,
+				'retry_after' => $retry_after,
+			]
+		);
 
 		status_header( 429 );
 		header( 'Content-Type: text/plain; charset=utf-8' );

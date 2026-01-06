@@ -121,6 +121,14 @@ class PluginUpdater {
 
 		// Compare versions.
 		if ( version_compare( $this->version, $remote_data->version, '<' ) ) {
+			Logger::debug(
+				'Plugin update available',
+				[
+					'current_version' => $this->version,
+					'new_version'     => $remote_data->version,
+				]
+			);
+
 			$transient->response[ $this->basename ] = (object) [
 				'slug'        => $this->slug,
 				'plugin'      => $this->basename,
@@ -223,7 +231,26 @@ class PluginUpdater {
 			]
 		);
 
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) ) {
+			Logger::error(
+				'Failed to fetch update manifest',
+				[
+					'url'   => $this->manifest_url,
+					'error' => $response->get_error_message(),
+				]
+			);
+			return false;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			Logger::warning(
+				'Update manifest returned non-200 status',
+				[
+					'url'         => $this->manifest_url,
+					'status_code' => $response_code,
+				]
+			);
 			return false;
 		}
 
@@ -232,6 +259,12 @@ class PluginUpdater {
 
 		// Validate manifest structure.
 		if ( ! $this->validate_manifest( $data ) ) {
+			Logger::warning(
+				'Update manifest validation failed',
+				[
+					'url' => $this->manifest_url,
+				]
+			);
 			return false;
 		}
 
