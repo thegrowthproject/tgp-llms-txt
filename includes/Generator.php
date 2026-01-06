@@ -294,37 +294,6 @@ class Generator {
 	}
 
 	/**
-	 * Get all posts list without category grouping.
-	 *
-	 * Used as fallback when no categories exist. Lists all published
-	 * posts in descending date order with titles, markdown URLs, and excerpts.
-	 *
-	 * @return string Markdown formatted posts list.
-	 */
-	private function get_posts_list(): string {
-		$output = '';
-
-		$posts = get_posts(
-			[
-				'posts_per_page' => -1,
-				'orderby'        => 'date',
-				'order'          => 'DESC',
-				'post_status'    => 'publish',
-			]
-		);
-
-		foreach ( $posts as $post ) {
-			$url = get_permalink( $post );
-			$md_url = $this->get_md_url( $url );
-			$title = get_the_title( $post );
-			$excerpt = $this->get_short_excerpt( $post );
-			$output .= "- [{$title}]({$md_url}): {$excerpt}\n";
-		}
-
-		return $output . "\n";
-	}
-
-	/**
 	 * Get short excerpt for a post.
 	 *
 	 * Returns a truncated excerpt suitable for llms.txt listings.
