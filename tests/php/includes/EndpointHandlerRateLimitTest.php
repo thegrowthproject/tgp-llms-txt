@@ -222,6 +222,7 @@ class EndpointHandlerRateLimitTest extends TestCase {
 		Functions\expect( 'set_transient' )
 			->once()
 			->andReturnUsing(
+				// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Mock callback signature.
 				function ( $key, $value, $expiration ) {
 					$this->assertEquals( 11, $value['count'] );
 					return true;
@@ -252,6 +253,7 @@ class EndpointHandlerRateLimitTest extends TestCase {
 		Functions\expect( 'set_transient' )
 			->once()
 			->andReturnUsing(
+				// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Mock callback signature.
 				function ( $key, $value, $expiration ) {
 					// Count should be reset to 1 (this request).
 					$this->assertEquals( 1, $value['count'] );
@@ -321,6 +323,7 @@ class EndpointHandlerRateLimitTest extends TestCase {
 		Functions\expect( 'set_transient' )
 			->once()
 			->andReturnUsing(
+				// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Mock callback signature.
 				function ( $key, $value, $expiration ) use ( $expected_key ) {
 					$this->assertEquals( $expected_key, $key );
 					return true;
