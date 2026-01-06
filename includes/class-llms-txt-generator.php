@@ -47,7 +47,7 @@ class TGP_LLMs_Txt_Generator {
 	 *
 	 * @return string The llms.txt content.
 	 */
-	public function generate() {
+	public function generate(): string {
 		$site_name        = get_bloginfo( 'name' );
 		$site_description = get_bloginfo( 'description' );
 		$site_url         = home_url();
@@ -111,7 +111,7 @@ class TGP_LLMs_Txt_Generator {
 	 *
 	 * @return string Markdown formatted pages section.
 	 */
-	private function get_pages_section() {
+	private function get_pages_section(): string {
 		$output = '';
 
 		/**
@@ -152,7 +152,7 @@ class TGP_LLMs_Txt_Generator {
 	 *
 	 * @return string Markdown formatted posts section.
 	 */
-	private function get_posts_section() {
+	private function get_posts_section(): string {
 		$output = '';
 
 		// Get all categories with posts.
@@ -205,7 +205,7 @@ class TGP_LLMs_Txt_Generator {
 	 *
 	 * @return string Markdown formatted posts list.
 	 */
-	private function get_posts_list() {
+	private function get_posts_list(): string {
 		$output = '';
 
 		$posts = get_posts(
@@ -238,7 +238,7 @@ class TGP_LLMs_Txt_Generator {
 	 * @param WP_Post $post The post object.
 	 * @return string Truncated excerpt (max 15 words).
 	 */
-	private function get_short_excerpt( $post ) {
+	private function get_short_excerpt( WP_Post $post ): string {
 		$excerpt = get_the_excerpt( $post );
 		if ( empty( $excerpt ) ) {
 			$content = wp_strip_all_tags( $post->post_content );
@@ -259,7 +259,7 @@ class TGP_LLMs_Txt_Generator {
 	 * @param string $url The original permalink URL.
 	 * @return string The markdown endpoint URL (with .md suffix).
 	 */
-	private function get_md_url( $url ) {
+	private function get_md_url( string $url ): string {
 		// Remove trailing slash and add .md
 		$url = rtrim( $url, '/' );
 		return $url . '.md';
@@ -275,7 +275,7 @@ class TGP_LLMs_Txt_Generator {
 	 * @param int     $post_id The post ID.
 	 * @param WP_Post $post    The post object.
 	 */
-	public function maybe_regenerate( $post_id, $post ) {
+	public function maybe_regenerate( int $post_id, WP_Post $post ): void {
 		// Skip autosaves and revisions
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;

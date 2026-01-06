@@ -25,7 +25,7 @@ class TGP_Endpoint_Handler {
 	/**
 	 * Check for custom endpoints early in init
 	 */
-	public function check_for_custom_endpoints() {
+	public function check_for_custom_endpoints(): void {
 		// Get the request path - sanitize server input.
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$path = wp_parse_url( $request_uri, PHP_URL_PATH );
@@ -52,7 +52,7 @@ class TGP_Endpoint_Handler {
 	/**
 	 * Add rewrite rules for .md endpoints
 	 */
-	public function add_rewrite_rules() {
+	public function add_rewrite_rules(): void {
 		// Match /blog/post-slug.md (for blogs with /blog/ prefix)
 		add_rewrite_rule(
 			'blog/([^/]+)\.md$',
@@ -92,7 +92,7 @@ class TGP_Endpoint_Handler {
 	/**
 	 * Add custom query vars
 	 */
-	public function add_query_vars( $vars ) {
+	public function add_query_vars( array $vars ): array {
 		$vars[] = 'tgp_format';
 		$vars[] = 'tgp_llms_txt';
 		return $vars;
@@ -100,13 +100,15 @@ class TGP_Endpoint_Handler {
 
 	/**
 	 * Store md slug for serving
+	 *
+	 * @var string|null
 	 */
-	private $md_slug = null;
+	private ?string $md_slug = null;
 
 	/**
 	 * Handle markdown requests
 	 */
-	public function handle_request() {
+	public function handle_request(): void {
 		global $wp;
 
 		// Handle llms.txt
@@ -126,7 +128,7 @@ class TGP_Endpoint_Handler {
 	/**
 	 * Serve markdown version of post/page
 	 */
-	private function serve_markdown() {
+	private function serve_markdown(): void {
 		global $post;
 
 		// Get slug from our stored value
@@ -179,7 +181,7 @@ class TGP_Endpoint_Handler {
 	/**
 	 * Serve llms.txt file
 	 */
-	private function serve_llms_txt() {
+	private function serve_llms_txt(): void {
 		$generator = new TGP_LLMs_Txt_Generator();
 
 		header( 'Content-Type: text/plain; charset=utf-8' );
@@ -195,7 +197,7 @@ class TGP_Endpoint_Handler {
 	/**
 	 * Send 404 response
 	 */
-	private function send_404() {
+	private function send_404(): void {
 		global $wp_query;
 		$wp_query->set_404();
 		status_header( 404 );

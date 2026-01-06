@@ -38,7 +38,7 @@ class TGP_LLMs_Txt {
 	 *
 	 * @return TGP_LLMs_Txt
 	 */
-	public static function get_instance() {
+	public static function get_instance(): self {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
@@ -56,7 +56,7 @@ class TGP_LLMs_Txt {
 	/**
 	 * Load required files.
 	 */
-	private function load_dependencies() {
+	private function load_dependencies(): void {
 		// Shared helpers (used by blocks).
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-svg-sanitizer.php';
 		require_once TGP_LLMS_PLUGIN_DIR . 'includes/class-button-block-renderer.php';
@@ -75,7 +75,7 @@ class TGP_LLMs_Txt {
 	/**
 	 * Initialize hooks.
 	 */
-	private function init_hooks() {
+	private function init_hooks(): void {
 		// Initialize components.
 		new TGP_Endpoint_Handler();
 		new TGP_LLMs_Txt_Generator();
@@ -103,7 +103,7 @@ class TGP_LLMs_Txt {
 	/**
 	 * Register Gutenberg blocks.
 	 */
-	public function register_blocks() {
+	public function register_blocks(): void {
 		// Register individual button blocks.
 		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/copy-button' );
 		register_block_type( TGP_LLMS_PLUGIN_DIR . 'blocks/view-button' );
@@ -136,7 +136,7 @@ class TGP_LLMs_Txt {
 	 * Gets the theme's button style variations and registers them for our blocks.
 	 * This runs after theme.json is processed so the variations are available.
 	 */
-	public function register_button_style_variations() {
+	public function register_button_style_variations(): void {
 		// Get theme's block style variations.
 		$variations = WP_Theme_JSON_Resolver::get_style_variations( 'block' );
 
@@ -186,7 +186,7 @@ class TGP_LLMs_Txt {
 	 * Also fixes outline style which has low specificity in WordPress core
 	 * and gets overridden by global-styles.
 	 */
-	public function enqueue_button_variation_styles() {
+	public function enqueue_button_variation_styles(): void {
 		// Get merged theme.json data.
 		$theme_json = WP_Theme_JSON_Resolver::get_merged_data();
 		$data       = $theme_json->get_raw_data();
@@ -254,7 +254,7 @@ class TGP_LLMs_Txt {
 	 * @param array  $block         The block data.
 	 * @return string Modified block content.
 	 */
-	public function add_post_id_data_attribute( $block_content, $block ) {
+	public function add_post_id_data_attribute( string $block_content, array $block ): string {
 		// Only process core/post-template blocks.
 		if ( 'core/post-template' !== $block['blockName'] ) {
 			return $block_content;
@@ -276,7 +276,7 @@ class TGP_LLMs_Txt {
 	/**
 	 * Plugin activation.
 	 */
-	public function activate() {
+	public function activate(): void {
 		// Flush rewrite rules.
 		flush_rewrite_rules();
 	}
@@ -284,7 +284,7 @@ class TGP_LLMs_Txt {
 	/**
 	 * Plugin deactivation.
 	 */
-	public function deactivate() {
+	public function deactivate(): void {
 		// Flush rewrite rules.
 		flush_rewrite_rules();
 	}
@@ -295,7 +295,7 @@ class TGP_LLMs_Txt {
  *
  * @return TGP_LLMs_Txt
  */
-function tgp_llms_txt_init() {
+function tgp_llms_txt_init(): TGP_LLMs_Txt {
 	return TGP_LLMs_Txt::get_instance();
 }
 add_action( 'plugins_loaded', 'tgp_llms_txt_init' );

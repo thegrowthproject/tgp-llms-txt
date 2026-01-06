@@ -18,7 +18,7 @@ class TGP_Markdown_Converter {
 	 * @param string $content The post content with Gutenberg blocks.
 	 * @return string Clean markdown
 	 */
-	public function convert( $content ) {
+	public function convert( string $content ): string {
 		// Step 1: Remove Gutenberg block comments
 		$content = $this->strip_block_comments( $content );
 
@@ -41,8 +41,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Strip Gutenberg block comments
+	 *
+	 * @param string $content The content to strip.
+	 * @return string The content without block comments.
 	 */
-	private function strip_block_comments( $content ) {
+	private function strip_block_comments( string $content ): string {
 		// Remove <!-- wp:something --> and <!-- /wp:something -->
 		$content = preg_replace( '/<!--\s*\/?wp:[^>]+-->/s', '', $content );
 		return $content;
@@ -50,8 +53,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert headings
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with headings converted.
 	 */
-	private function convert_headings( $content ) {
+	private function convert_headings( string $content ): string {
 		// H1
 		$content = preg_replace_callback(
 			'/<h1[^>]*>(.*?)<\/h1>/is',
@@ -93,8 +99,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert paragraphs
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with paragraphs converted.
 	 */
-	private function convert_paragraphs( $content ) {
+	private function convert_paragraphs( string $content ): string {
 		// Convert <p> tags to plain text with double newlines
 		$content = preg_replace_callback(
 			'/<p[^>]*>(.*?)<\/p>/is',
@@ -110,8 +119,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert lists (ul/ol)
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with lists converted.
 	 */
-	private function convert_lists( $content ) {
+	private function convert_lists( string $content ): string {
 		// Unordered lists
 		$content = preg_replace_callback(
 			'/<ul[^>]*>(.*?)<\/ul>/is',
@@ -135,8 +147,12 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert list items
+	 *
+	 * @param string $list_content The list HTML content.
+	 * @param string $marker       The list marker (- or 1.).
+	 * @return string The converted markdown list.
 	 */
-	private function convert_list_items( $list_content, $marker ) {
+	private function convert_list_items( string $list_content, string $marker ): string {
 		$result  = '';
 		$counter = 1;
 
@@ -161,8 +177,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert tables
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with tables converted.
 	 */
-	private function convert_tables( $content ) {
+	private function convert_tables( string $content ): string {
 		$content = preg_replace_callback(
 			'/<figure[^>]*class="[^"]*wp-block-table[^"]*"[^>]*>(.*?)<\/figure>/is',
 			function ( $matches ) {
@@ -185,8 +204,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Parse HTML table to markdown
+	 *
+	 * @param string $table_html The table HTML to parse.
+	 * @return string The markdown table.
 	 */
-	private function parse_table( $table_html ) {
+	private function parse_table( string $table_html ): string {
 		$result = "\n";
 
 		// Extract header row
@@ -228,8 +250,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert links
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with links converted.
 	 */
-	private function convert_links( $content ) {
+	private function convert_links( string $content ): string {
 		$content = preg_replace_callback(
 			'/<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/is',
 			function ( $matches ) {
@@ -245,8 +270,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert emphasis (bold, italic)
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with emphasis converted.
 	 */
-	private function convert_emphasis( $content ) {
+	private function convert_emphasis( string $content ): string {
 		// Strong/bold
 		$content = preg_replace( '/<strong[^>]*>(.*?)<\/strong>/is', '**$1**', $content );
 		$content = preg_replace( '/<b[^>]*>(.*?)<\/b>/is', '**$1**', $content );
@@ -263,8 +291,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert blockquotes
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with blockquotes converted.
 	 */
-	private function convert_blockquotes( $content ) {
+	private function convert_blockquotes( string $content ): string {
 		$content = preg_replace_callback(
 			'/<blockquote[^>]*>(.*?)<\/blockquote>/is',
 			function ( $matches ) {
@@ -286,8 +317,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert code blocks
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with code blocks converted.
 	 */
-	private function convert_code( $content ) {
+	private function convert_code( string $content ): string {
 		// Code blocks (pre > code)
 		$content = preg_replace_callback(
 			'/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/is',
@@ -306,16 +340,22 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Convert horizontal rules
+	 *
+	 * @param string $content The content to convert.
+	 * @return string The content with horizontal rules converted.
 	 */
-	private function convert_horizontal_rules( $content ) {
+	private function convert_horizontal_rules( string $content ): string {
 		$content = preg_replace( '/<hr[^>]*\/?>/is', "\n---\n\n", $content );
 		return $content;
 	}
 
 	/**
 	 * Convert inline elements within text
+	 *
+	 * @param string $text The text to convert.
+	 * @return string The text with inline elements converted.
 	 */
-	private function convert_inline_elements( $text ) {
+	private function convert_inline_elements( string $text ): string {
 		// Links
 		$text = preg_replace_callback(
 			'/<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/is',
@@ -349,8 +389,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Strip inline HTML tags but keep text
+	 *
+	 * @param string $text The text to strip.
+	 * @return string The text without inline HTML tags.
 	 */
-	private function strip_inline_tags( $text ) {
+	private function strip_inline_tags( string $text ): string {
 		// First convert important elements.
 		$text = $this->convert_inline_elements( $text );
 		// Then strip any remaining HTML.
@@ -360,8 +403,11 @@ class TGP_Markdown_Converter {
 
 	/**
 	 * Final cleanup
+	 *
+	 * @param string $content The content to clean up.
+	 * @return string The cleaned content.
 	 */
-	private function cleanup( $content ) {
+	private function cleanup( string $content ): string {
 		// Remove any remaining HTML tags
 		$content = preg_replace( '/<[^>]+>/', '', $content );
 

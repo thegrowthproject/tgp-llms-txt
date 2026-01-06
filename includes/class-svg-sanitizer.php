@@ -34,7 +34,7 @@ class TGP_SVG_Sanitizer {
 	 *
 	 * @return array Allowed tags array for wp_kses.
 	 */
-	public static function get_allowed_tags() {
+	public static function get_allowed_tags(): array {
 		return [
 			'svg'      => [
 				'xmlns'           => true,
