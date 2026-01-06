@@ -44,10 +44,11 @@ jobs:
           echo "Waiting for WordPress to be ready..."
           timeout 60 bash -c 'until curl -s http://localhost:8888 > /dev/null; do sleep 2; done'
 
-      - name: Activate plugin and flush rewrite rules
+      - name: Activate plugin and set up permalinks
         run: |
           npm run wp-env run cli wp plugin activate wp-llms-txt
-          npm run wp-env run cli wp rewrite flush
+          npm run wp-env run cli wp rewrite structure '/%postname%/'
+          npm run wp-env run cli wp rewrite flush --hard
 
       - name: Verify plugin is active
         run: |
